@@ -1,6 +1,6 @@
 # unit_test.py
 # Minimal end-to-end sanity test:
-# - Load a tiny subset from cnn_dailymail (3.0.0)
+# - Load a tiny subset from local JSON files
 # - Baseline inference on 3 samples (+ ROUGE)
 # - LoRA fine-tune for ~30 steps
 # - Inference again on the same 3 samples (+ ROUGE)
@@ -12,7 +12,7 @@ import re
 from typing import List
 
 import torch
-from datasets import load_dataset, Dataset
+from datasets import Dataset
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
@@ -25,6 +25,7 @@ from peft import LoraConfig, get_peft_model
 
 MODEL_NAME = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
 OUTPUT_DIR = "unit_test_adapter"
+DATA_DIR = "./data_cnn"
 
 
 def make_prompt(article: str) -> str:
@@ -120,6 +121,33 @@ def preprocess_builder(tokenizer):
     return preprocess
 
 
+def load_local_data():
+    """Load training and evaluation data from local JSONL files."""
+    train_path = os.path.join(DATA_DIR, "cnn_train_1k.jsonl")
+    eval_path = os.path.join(DATA_DIR, "cnn_test_15.jsonl")
+    
+    if not os.path.exists(train_path) or not os.path.exists(eval_path):
+        raise FileNotFoundError(
+            f"Data files not found in {DATA_DIR}\n"
+            f"Expected: {train_path}\n"
+            f"Expected: {eval_path}\n"
+            f"Please ensure data_cnn/cnn_train_1k.jsonl and data_cnn/cnn_test_15.jsonl exist"
+        )
+    
+    # Load JSONL format (one JSON object per line)
+    with open(train_path, "r", encoding="utf-8") as f:
+        train_data = [json.loads(line.strip()) for line in f if line.strip()]
+    
+    with open(eval_path, "r", encoding="utf-8") as f:
+        eval_data = [json.loads(line.strip()) for line in f if line.strip()]
+    
+    # Convert to HuggingFace Dataset
+    train_dataset = Dataset.from_list(train_data)
+    eval_list = eval_data  # Keep as list for inference
+    
+    return train_dataset, eval_list
+
+
 def main():
     # Make transformers avoid importing torchvision (not needed here).
     os.environ["TRANSFORMERS_NO_TORCHVISION"] = "1"
@@ -133,13 +161,10 @@ def main():
         device = torch.device("cpu")
     print("using device:", device)
 
-    # Tiny dataset: 20 train examples + 3 eval examples (fast & portable).
-    ds = load_dataset("cnn_dailymail", "3.0.0")
-    train_small = ds["train"].shuffle(seed=0).select(range(20))
-    eval_small = ds["validation"].shuffle(seed=0).select(range(3))
-
-    # Convert to vanilla lists for inference and to Dataset for Trainer.
-    eval_list = [eval_small[i] for i in range(len(eval_small))]
+    # Load data from local files instead of downloading
+    print("==> Loading local test data...")
+    train_small, eval_list = load_local_data()
+    print(f"Loaded {len(train_small)} training samples and {len(eval_list)} eval samples")
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     if tokenizer.pad_token is None:
@@ -151,8 +176,8 @@ def main():
         dtype=torch.float16 if device.type == "cuda" else torch.float32,
     ).to(device)
 
-    # A) Baseline inference + ROUGE on 3 examples.
-    print("==> Baseline inference (3 samples)")
+    # A) Baseline inference + ROUGE on eval examples.
+    print("==> Baseline inference (baseline model)")
     base_out = run_inference(eval_list, model, tokenizer, device, "unit_base_outputs.json")
     base_preds = [r["prediction"] for r in base_out]
     base_refs = [r["reference"] for r in base_out]
@@ -199,7 +224,6 @@ def main():
         data_collator=collator,
     )
 
- 
     trainer.train()
 
     # Save the tiny adapter.
@@ -207,7 +231,7 @@ def main():
     tokenizer.save_pretrained(OUTPUT_DIR)
     print(f"Adapter saved to ./{OUTPUT_DIR}")
 
-    print("==> Finetuned inference (3 samples)")
+    print("==> Finetuned inference (finetuned model)")
     ft_out = run_inference(eval_list, model, tokenizer, device, "unit_finetuned_outputs.json")
     ft_preds = [r["prediction"] for r in ft_out]
     ft_refs = [r["reference"] for r in ft_out]
@@ -216,6 +240,9 @@ def main():
         print("Finetuned ROUGE:", ft_rouge)
     except Exception as e:
         print("ROUGE computation failed (install evaluate+nltk+rouge_score+absl):", e)
+
+    print("\n==> Unit test completed successfully!")
+    print(f"Results saved to: unit_base_outputs.json, unit_finetuned_outputs.json")
 
 
 if __name__ == "__main__":
