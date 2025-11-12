@@ -271,6 +271,27 @@ The fine-tuned model produces a more concise and focused summary (word count: ~4
 - Closer to reference length: Comparable to the reference summary structure
 - Some minor issues: Still includes speculative details ("could play at full back or centre") not explicitly in the article
 
+### Example 2: Hallucination Reduction and Focus on Key Information
+
+**Original Article (excerpt):**
+"(CNN)For years, they've wanted six seasons and a movie, and at 3:01 a.m. ET Tuesday, fans got it ... almost. There's no movie yet, but "Community's" much-awaited sixth season made its debut. Not even cancellation by NBC could kill the fan favorite sitcom, as Yahoo streamed the first two episodes of the new season early Tuesday. The show appears to have suffered no decline in quality in the move to Yahoo, though cast member Yvette Nicole Brown (now on CBS' "The Odd Couple") had to leave the show for family reasons. The premiere briefly touches on this in its own way, with Shirley's absence sounding a lot like the setup for a spinoff (as the character Abed points out, along with several other inconsistencies throughout the episode). The "new Shirley," as Dean joked, is Paget Brewster's Frankie, who exists to play the disapproving authority figure to antagonize the former study group. Soon, the group was running a Prohibition-esque bar before they could learn to live with Frankie. And how about the end of the first episode, which gave us a look at the spinoff, "The Butcher and the Baker," with Shirley and Steven Weber as a Southern lawyer? Episode two got even more out there, with Dean Pelton's adventures in 1990s-style virtual reality and a less-successful plotline involving Britta's parents. Most interesting was the introduction of Keith David as '90s tech genius Elroy. Critics praised the show, with The Hollywood Reporter's Amy Amatangelo saying, "Everything fans loved about Community remains -- the first two episodes are chock-full of increasingly bizarre pop-culture references (Portuguese Gremlins, anyone?) and meta commentary. The show has seamlessly transferred to an online venue." Time's James Poniewozik also liked it (despite some reservations about the plot), writing, "The first thing that matters is if the latest reboot still has the comedy goods, and it does." Soon after the show went online, devoted fans on Twitter had their say."
+
+**Reference Summary:**
+"The fan favorite comedy "Community" returns for a sixth season on Yahoo. The series is just as weirdly hilarious as ever, with surprises in store. Critics and fans loved the premiere."
+
+**Baseline Model Output:**
+""Community's" sixth season premiered on Yahoo on Tuesday, marking the first time the show has been available online. The show, which has been canceled by NBC, made its debut with two episodes. The first episode, which aired at 3:01 a.m."
+
+**Fine-tuned Model Output:**
+""Community's" sixth season debuts on Yahoo Tuesday. The show appears to have suffered no decline in quality. The premiere briefly touches on the show's cancellation. The "new Shirley" is Paget Brewster's Frankie, who exists to play the disapproving authority figure."
+
+**Fine-tuned Analysis:**
+The fine-tuned model demonstrates better control over hallucinations and improved information selection (word count: ~45):
+- **Reduced unfounded specifics**: While "Tuesday" still appears, the output is more grounded overall
+- **Better sentiment capture**: Includes "suffered no decline in quality" which aligns with "just as weirdly hilarious as ever"
+- **More balanced focus**: Addresses both the premiere and audience reception
+- **Improved conciseness**: Stays focused on key points without excessive elaboration
+- **Minor issue**: Still includes some details (character names like "Paget Brewster's Frankie") not explicitly in the reference
 
 
 
