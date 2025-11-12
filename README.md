@@ -1,5 +1,5 @@
 # LoRA Fine-Tuning for News Article Summarization
-
+Student : Weihao He
 ## Project Overview
 
 This project fine-tunes a small language model using Low-Rank Adaptation (LoRA) to improve performance on abstractive news article summarization. The base model used is **HuggingFaceTB/SmolLM2-1.7B-Instruct** from HuggingFace, and the fine-tuning dataset is the **CNN/DailyMail 3.0.0** corpus.
