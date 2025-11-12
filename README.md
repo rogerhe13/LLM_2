@@ -13,6 +13,7 @@ This project fine-tunes a small language model using Low-Rank Adaptation (LoRA) 
 - **Dataset**: 1,000 training examples + 15 validation examples from CNN/DailyMail
 - **Metrics**: ROUGE scores (ROUGE-1, ROUGE-2, ROUGE-L) for evaluation
 - **Unit test**: Standalone script for quick validation (runs in ~5-10 minutes)
+- **Docker support**: Containerized setup for easy reproducibility
 
 ---
 
@@ -42,7 +43,8 @@ Model Artifacts:
 │
 Configuration:
 ├── requirements.txt             # Python dependencies
-├── Dockerfile                   # Container setup (optional)
+├── Dockerfile                   # Container setup
+├── .dockerignore                # Docker build exclusions
 └── README.md                    # This file
 ```
 
@@ -88,6 +90,74 @@ python dataset.py
 This will create:
 - `data_cnn/cnn_train_1k.jsonl` — 1,000 training examples
 - `data_cnn/cnn_test_15.jsonl` — 15 validation/test examples
+
+---
+
+## Docker Setup (Optional but Recommended)
+
+You can run the unit test or full training pipeline inside a Docker container with all dependencies pre-configured.
+
+### Prerequisites
+- Docker 19.03+
+- NVIDIA Docker runtime (for GPU support)
+- NVIDIA Container Toolkit (https://github.com/NVIDIA/nvidia-docker)
+
+### Build Docker Image
+
+```bash
+docker build -t llm-summarization:latest .
+```
+
+### Run Unit Test in Docker
+
+```bash
+docker run --gpus all llm-summarization:latest python3 unit_test.py
+```
+
+This will:
+- Run the lightweight unit test (5-10 minutes)
+- Generate `unit_test_adapter/`, `unit_base_outputs.json`, and `unit_finetuned_outputs.json`
+- Display ROUGE scores in the console
+
+### Run Full Fine-Tuning in Docker
+
+```bash
+docker run --gpus all llm-summarization:latest python3 fine-tune.py
+```
+
+This will execute the complete fine-tuning pipeline (30-60 minutes on NVIDIA A100/V100).
+
+### Save Output Files Locally
+
+To preserve generated files after the container finishes:
+
+```bash
+mkdir -p outputs
+docker run --gpus all -v $(pwd)/outputs:/app/outputs llm-summarization:latest python3 unit_test.py
+```
+
+This mounts a local `outputs/` directory to the container, saving all predictions and adapters.
+
+### Troubleshooting Docker
+
+**GPU not detected:**
+```bash
+# Verify NVIDIA Docker is installed
+docker run --rm --gpus all nvidia/cuda:12.1.0-runtime-ubuntu22.04 nvidia-smi
+```
+
+**Memory issues:**
+Increase available memory:
+```bash
+docker run --gpus all -m 16g llm-summarization:latest python3 unit_test.py
+```
+
+**Permission issues:**
+Create the output directory first:
+```bash
+mkdir -p outputs
+docker run --gpus all -v $(pwd)/outputs:/app/outputs llm-summarization:latest python3 unit_test.py
+```
 
 ---
 
@@ -384,32 +454,6 @@ Each line is a JSON object:
 
 ---
 
-## Docker Setup (Optional)
-
-### Dockerfile
-```dockerfile
-FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
-
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y python3.10 python3-pip git
-
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-
-ENTRYPOINT ["python3"]
-```
-
-### Build & Run
-```bash
-docker build -t lora-summarization:latest .
-docker run --gpus all -v $(pwd):/app lora-summarization:latest fine-tune.py
-```
-
----
-
 ## References
 
 - **PEFT Documentation**: https://huggingface.co/docs/peft/en/index
@@ -439,7 +483,3 @@ For issues or questions:
 **Last Updated**: November 2025
 
 **Assignment**: LLMs Fine-Tuning with LoRA (Assignment 2)
-
-**Model**: HuggingFaceTB/SmolLM2-1.7B-Instruct
-
-**Task**: Abstractive News Article Summarization
