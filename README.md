@@ -137,7 +137,7 @@ This mounts a local `outputs/` directory to the container, saving all prediction
 
 ## Running the Code
 
-### Option 1: Quick Unit Test (Recommended for Validation)
+### Option 1: Quick Unit Test
 
 Run the lightweight unit test to verify your setup works. This trains for only ~30 steps on 20 training samples and evaluates on 3 test samples. Should complete in 5-10 minutes.
 
@@ -292,10 +292,10 @@ Each line is a JSON object:
 
 - [ ] Install dependencies: `pip install -r requirements.txt`
 - [ ] Download dataset: `python dataset.py` (automatic in scripts)
-- [ ] Run unit test: `python unit_test.py` (5-10 min)
+- [ ] Run unit test: `python unit_test.py` 
 - [ ] Check `unit_test_adapter/` was created
 - [ ] Review `unit_base_outputs.json` and `unit_finetuned_outputs.json`
-- [ ] Run full pipeline: `python fine-tune.py` (30-60 min, requires GPU)
+- [ ] Run full pipeline: `python fine-tune.py` 
 - [ ] Compare `baseline_outputs.json` vs `finetuned_outputs.json`
 - [ ] Verify ROUGE scores show improvement
 
