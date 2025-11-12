@@ -14,8 +14,8 @@ from transformers import (
 from peft import LoraConfig, get_peft_model
 
 MODEL_NAME = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
-TRAIN_PATH = "cnn_train_1k.jsonl"
-VAL_PATH = "cnn_test_15.jsonl"
+TRAIN_PATH = "./data_cnn/cnn_train_1k.jsonl"
+VAL_PATH = "./data_cnn/cnn_test_15.jsonl"
 OUTPUT_DIR = "lora-sum-smollm2"
 
 
