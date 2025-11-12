@@ -1,0 +1,24 @@
+# Use the official CUDA wheels for PyTorch (change cu121 -> cu118 if needed)
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+# PyTorch (CUDA build)
+torch==2.4.1
+
+# Hugging Face core
+transformers>=4.45.2
+datasets>=2.20.0
+tokenizers>=0.19.1
+safetensors>=0.4.5
+
+# Parameter-efficient fine-tuning
+peft>=0.12.0
+accelerate>=0.34.2
+
+# Evaluation (ROUGE) + deps
+evaluate>=0.4.2
+rouge_score>=0.1.2
+nltk>=3.9.1
+absl-py>=2.1.0
+
+# HF Hub fast download
+hf_transfer>=0.1.6
